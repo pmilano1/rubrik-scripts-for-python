@@ -30,7 +30,7 @@ objtype = {
  'Mssql': {'url': 'v1/mssql/db/{}/snapshot', 'array': 'data'},
  'LinuxFileset': {'url': 'v1/fileset/{}', 'array': 'snapshots'},
  'WindowsFileset': {'url': 'v1/fileset/{}', 'array': 'snapshots'},
- 'NasFileset': {'url': 'v1/fileset/{}', 'array': 'snapshots'},
+ 'ShareFileset': {'url': 'v1/fileset/{}', 'array': 'snapshots'},
  'ManagedVolume': {'url': 'internal/managed_volume/{}/snapshot', 'array': 'data'}
 }
 
