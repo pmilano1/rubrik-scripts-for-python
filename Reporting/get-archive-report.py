@@ -47,7 +47,7 @@ filename = "rubrik_archive_report_{}.csv".format(time.strftime("%Y%m%d-%H%M%S"))
 threads_per_node = 10
 
 
-# Progress Bat
+# Progress Bar
 def progress(count, total, status=''):
     bar_len = 60
     filled_len = int(round(bar_len * count / float(total)))
