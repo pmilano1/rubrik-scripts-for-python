@@ -1,16 +1,11 @@
-import requests
-import base64
-import sys
-import os
-import getopt
-import getpass
-import time
-import random
+import requests, base64, sys, os, getopt, getpass, time, random
 from timeit import default_timer as timer
 from multiprocessing.pool import ThreadPool
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 start = timer()
+
+# Grab node argument
 if len(sys.argv) != 3:
     print '***' + sys.argv[0] + ' usage: -n <node IP or hostname>'
     os._exit(1)
@@ -19,6 +14,7 @@ for opt, opt_value in myopts:
     if opt == '-n':
         node = opt_value
 
+# Prompt for these
 username = raw_input('Username: ')
 password = getpass.getpass()
 sla = raw_input('SLA Domains (comma delimited, or leave empty for all): ')
@@ -27,8 +23,6 @@ sla = raw_input('SLA Domains (comma delimited, or leave empty for all): ')
 auth_string = base64.b64encode(username + ':' + password)
 basic_auth_header = 'Basic ' + auth_string
 header = {'Accept': 'application/json', 'Authorization': basic_auth_header}
-
-selected = ["Location", "ObjectName", "ObjectType", "SlaDomain"]
 
 # Static hash of object information
 objtype = {
@@ -40,11 +34,14 @@ objtype = {
  'ManagedVolume': {'url': 'internal/managed_volume/{}/snapshot', 'array': 'data'}
 }
 
+# Report columns to include
+selected = ["Location", "ObjectName", "ObjectType", "SlaDomain"]
+
 # Static Variables
 limit = 100
 object_report_name = "Object Protection Summary"
 filename = "rubrik_archive_report_{}.csv".format(time.strftime("%Y%m%d-%H%M%S"))
-threads_per_node = 10
+threads_per_node = 5
 
 
 # Progress Bar
@@ -97,7 +94,7 @@ def get_ips(n):
 def get_latest_archive_info(n, id, a):
     archive_call = ("/api/{}".format(objtype[a]['url'].format(id)))
     archive_uri = ("{}{}".format(n, archive_call))
-    archive_request = requests.get(archive_uri, headers=header, verify=False, timeout=15).json()
+    archive_request = requests.get(archive_uri, headers=header, verify=False, timeout=30).json()
     for snap in archive_request[objtype[a]['array']]:
         if snap['cloudState'] > 0:
             return snap['date']
