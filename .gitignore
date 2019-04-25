@@ -5,5 +5,6 @@ venv
 .idea
 *.csv
 rubrik_host_registrations*
+rubrik_archive_report*
 DATAGEN*
 *.txt
