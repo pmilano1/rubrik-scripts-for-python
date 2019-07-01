@@ -1,7 +1,40 @@
+"""
+Summary -
+   This script will analyse Rubrik Objects and report the last time that the object was successfully archived
+to its archival target. It will report on all objects defined in 'obbjtype'.
+
+Execution -
+    ./get-archive-report -n [ip or hostname of Rubrik CDM]
+
+    Asks for username, password, and SLA Domains to include in report
+
+Expected Output -
+
+    Identifying Objects 938/1084 Completed
+    Getting Object Archive Information
+    [============================================================] 100.0% (Completed in 159.3871936 seconds)
+    File is rubrik_archive_report_20190701-161101.csv
+
+File output excerpt -
+
+    "Location", "ObjectName", "ObjectType", "SlaDomain", "ArchiveDate"
+    "", "am1l1", "ManagedVolume", "1d-30d-NoArchive", "2018-10-05T06:00:22.000Z"
+    "172.24.18.60", "/Home", "LinuxFileset", "1d-30d-NoArchive", "None"
+    "AM1-MAKAHENG-L1", "AllstateTest", "LinuxFileset", "1d-30d-NoArchive", "None"
+    "AM1-MAKAHENG-W1\MSSQLSERVER", "AdventureWorks2014", "Mssql", "1d-30d-NoArchive", "None"
+    "AM1-MAKAHENG-W1\MSSQLSERVER", "master", "Mssql", "1d-30d-NoArchive", "None"
+    "AM1-MAKAHENG-W1\MSSQLSERVER", "model", "Mssql", "1d-30d-NoArchive", "None"
+    "AM1-MAKAHENG-W1\MSSQLSERVER", "msdb", "Mssql", "1d-30d-NoArchive", "None"
+    "AM1-ZAKPELLE-W1.rubrikdemo.com", "C_Users", "WindowsFileset", "1d-30d-NoArchive", "None"
+    "AM1-ZAKPELLE-W1.rubrikdemo.com\MSSQLSERVER", "AdventureWorks2014", "Mssql", "12hr-30d-AWS", "2019-05-31T19:24:43.000Z"
+
+"""
+
 import requests, base64, sys, os, getopt, getpass, time, random
 from timeit import default_timer as timer
 from multiprocessing.pool import ThreadPool
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 start = timer()
 
@@ -31,6 +64,7 @@ objtype = {
  'LinuxFileset': {'url': 'v1/fileset/{}', 'array': 'snapshots'},
  'WindowsFileset': {'url': 'v1/fileset/{}', 'array': 'snapshots'},
  'ShareFileset': {'url': 'v1/fileset/{}', 'array': 'snapshots'},
+# 'WindowsVolumeGroup': {'url': 'internal/volume_group/{}/snapshot', 'array': 'data'},
  'ManagedVolume': {'url': 'internal/managed_volume/{}/snapshot', 'array': 'data'}
 }
 
@@ -41,7 +75,7 @@ selected = ["Location", "ObjectName", "ObjectType", "SlaDomain"]
 limit = 100
 object_report_name = "Object Protection Summary"
 filename = "rubrik_archive_report_{}.csv".format(time.strftime("%Y%m%d-%H%M%S"))
-threads_per_node = 5
+threads_per_node = 4
 
 
 # Progress Bar
@@ -121,6 +155,7 @@ def get_rubrik_objects(n, id, sla):
         for dg_line in page_call['dataGrid']:
             total += 1
             if dg_line[page_call['columns'].index('ObjectType')] not in objtype.keys():
+                #print dg_line
                 continue
             if dg_line[page_call['columns'].index('SlaDomain')] in sla:
                 found += 1
